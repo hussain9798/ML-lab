@@ -32,7 +32,14 @@ class Config:
     MAX_DOCUMENTATION_PDF_SIZE = int(os.getenv('MAX_DOCUMENTATION_PDF_SIZE', 15 * 1024 * 1024))
     
     # CORS
-    CORS_ORIGINS = [origin.strip() for origin in os.getenv('CORS_ORIGINS', '*').split(',') if origin.strip()]
+    CORS_ORIGINS = [
+        origin.strip().rstrip('/')
+        for origin in os.getenv(
+            'CORS_ORIGINS',
+            'http://localhost:5173,https://mllab-omega.vercel.app'
+        ).split(',')
+        if origin.strip()
+    ]
     
     # Email & OTP Settings (2-Factor Authentication)
     SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')

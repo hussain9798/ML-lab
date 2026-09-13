@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { documentationAPI, algorithmsAPI } from '../services/api';
+import { documentationAPI, algorithmsAPI, API_BASE_URL } from '../services/api';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 import { 
@@ -141,7 +141,7 @@ const Documentation = () => {
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white">Reference PDF</h3>
                   <a
-                    href={`${import.meta.env.VITE_API_URL || '/api'}${doc.pdf_url.replace('/api', '')}`}
+                    href={`${API_BASE_URL}${doc.pdf_url.replace('/api', '')}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-xs text-brand-400 hover:underline"
@@ -151,7 +151,7 @@ const Documentation = () => {
                 </div>
                 <iframe
                   title={`${doc.title} reference PDF`}
-                  src={`${import.meta.env.VITE_API_URL || '/api'}${doc.pdf_url.replace('/api', '')}`}
+                  src={`${API_BASE_URL}${doc.pdf_url.replace('/api', '')}`}
                   className="w-full h-[520px] rounded-xl border border-slate-800 bg-white"
                 />
               </section>

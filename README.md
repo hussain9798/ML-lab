@@ -104,6 +104,24 @@ docker compose up --build
 ```
 Access the application at `http://localhost:5173`.
 
+### 4. Render Backend + Vercel Frontend
+
+For a split deployment, set this environment variable in the Vercel project:
+
+```text
+VITE_API_URL=https://ml-lab-tlh7.onrender.com/api
+```
+
+Set this environment variable in Render for the backend:
+
+```text
+CORS_ORIGINS=https://mllab-omega.vercel.app
+```
+
+After saving the variables, redeploy both services. The frontend must use the
+complete backend URL including `/api`; the backend CORS value must be the exact
+frontend origin without a trailing slash.
+
 ---
 
 ## 🧪 Automated Testing

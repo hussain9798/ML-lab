@@ -16,6 +16,10 @@ const Login = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/dashboard';
+  const getErrorMessage = (err, fallback) => {
+    const message = err.response?.data?.error;
+    return typeof message === 'string' ? message : fallback;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +33,7 @@ const Login = () => {
         navigate(from, { replace: true });
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid email or password.');
+      setError(getErrorMessage(err, 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +50,7 @@ const Login = () => {
         { replace: true }
       );
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid verification code.');
+      setError(getErrorMessage(err, 'Invalid verification code.'));
     } finally {
       setLoading(false);
     }
@@ -59,7 +63,7 @@ const Login = () => {
       setChallenge((current) => ({ ...current, ...res.data }));
       setOtp('');
     } catch (err) {
-      setError(err.response?.data?.error || 'Could not resend verification code.');
+      setError(getErrorMessage(err, 'Could not resend verification code.'));
     }
   };
 

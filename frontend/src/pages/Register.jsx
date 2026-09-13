@@ -14,6 +14,10 @@ const Register = () => {
 
   const { register, verifyOtp, resendOtp } = useAuth();
   const navigate = useNavigate();
+  const getErrorMessage = (err, fallback) => {
+    const message = err.response?.data?.error;
+    return typeof message === 'string' ? message : fallback;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +35,7 @@ const Register = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed.');
+      setError(getErrorMessage(err, 'Registration failed.'));
     } finally {
       setLoading(false);
     }
@@ -45,7 +49,7 @@ const Register = () => {
       await verifyOtp(challenge, otp);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid verification code.');
+      setError(getErrorMessage(err, 'Invalid verification code.'));
     } finally {
       setLoading(false);
     }
@@ -58,7 +62,7 @@ const Register = () => {
       setChallenge((current) => ({ ...current, ...res.data }));
       setOtp('');
     } catch (err) {
-      setError(err.response?.data?.error || 'Could not resend verification code.');
+      setError(getErrorMessage(err, 'Could not resend verification code.'));
     }
   };
 
