@@ -1,0 +1,66 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: mllab_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - mllab-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mllab_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: production
+      FLASK_DEBUG: "0"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:?Set SMTP_USER in .env}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP_PASSWORD in .env}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@mllab.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-ML Laboratory Security}
+      OTP_EXPIRATION_MINUTES: ${OTP_EXPIRATION_MINUTES:-5}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017}
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME:-ml_laboratory}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      EXECUTION_BACKEND: ${EXECUTION_BACKEND:-subprocess}
+      EXECUTION_TIMEOUT: ${EXECUTION_TIMEOUT:-6}
+    volumes:
+      - documentation_uploads:/app/uploads
+    depends_on:
+      - mongodb
+    networks:
+      - mllab-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mllab_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - mllab-network
+
+networks:
+  mllab-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  documentation_uploads:
