@@ -28,15 +28,43 @@ const Documentation = () => {
   const [docList, setDocList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const renderInlineContent = (text) => text.split(/(\$\$[^$]+?\$\$|\$[^$]+\$)/g).map((part, index) => {
+  const renderInlineContent = (text) => text.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g).map((part, index) => {
     if (part.startsWith('$$') && part.endsWith('$$')) {
+      return <BlockMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
+    }
+    if (part.startsWith('\\[') && part.endsWith('\\]')) {
       return <BlockMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
     }
     if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
       return <InlineMath key={index} math={part.slice(1, -1)} throwOnError={false} />;
     }
+    if (part.startsWith('\\(') && part.endsWith('\\)')) {
+      return <InlineMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
+    }
     return <React.Fragment key={index}>{part}</React.Fragment>;
   });
+
+  const renderHeadingBlock = (block, level) => {
+    const lines = block.split('\n');
+    const heading = lines.shift().replace(/^#{1,3}\s+/, '');
+    const Heading = level === 1 ? 'h2' : level === 2 ? 'h3' : 'h4';
+    const className = level === 1
+      ? 'text-2xl font-bold text-white tracking-tight pt-4 border-b border-slate-800 pb-2'
+      : level === 2
+        ? 'text-lg font-bold text-cyan-400 tracking-tight pt-3'
+        : 'text-sm font-semibold text-brand-300 pt-2 uppercase tracking-wide';
+
+    return (
+      <React.Fragment>
+        <Heading className={className}>{heading}</Heading>
+        {lines.length > 0 && (
+          <p className="text-slate-300 leading-relaxed whitespace-pre-line">
+            {renderInlineContent(lines.join('\n'))}
+          </p>
+        )}
+      </React.Fragment>
+    );
+  };
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -178,25 +206,19 @@ const Documentation = () => {
                 // Header level 1
                 if (block.startsWith('# ')) {
                   return (
-                    <h2 key={idx} className="text-2xl font-bold text-white tracking-tight pt-4 border-b border-slate-800 pb-2">
-                      {block.replace('# ', '')}
-                    </h2>
+                    <React.Fragment key={idx}>{renderHeadingBlock(block, 1)}</React.Fragment>
                   );
                 }
                 // Header level 2
                 if (block.startsWith('## ')) {
                   return (
-                    <h3 key={idx} className="text-lg font-bold text-cyan-400 tracking-tight pt-3">
-                      {block.replace('## ', '')}
-                    </h3>
+                    <React.Fragment key={idx}>{renderHeadingBlock(block, 2)}</React.Fragment>
                   );
                 }
                 // Header level 3
                 if (block.startsWith('### ')) {
                   return (
-                    <h4 key={idx} className="text-sm font-semibold text-brand-300 pt-2 uppercase tracking-wide">
-                      {block.replace('### ', '')}
-                    </h4>
+                    <React.Fragment key={idx}>{renderHeadingBlock(block, 3)}</React.Fragment>
                   );
                 }
                 // Math Block
