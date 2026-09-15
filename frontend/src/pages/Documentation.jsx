@@ -28,12 +28,17 @@ const Documentation = () => {
   const [docList, setDocList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const renderInlineContent = (text) => text.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))/g).map((part, index) => {
+  const isBracketMath = (value) => /\\(?:frac|boxed|mathbf|hat|infty|sigma|sum|log|left|right|begin|end|partial)|[=^_]/.test(value);
+
+  const renderInlineContent = (text) => text.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\[[\s\S]+?\])/g).map((part, index) => {
     if (part.startsWith('$$') && part.endsWith('$$')) {
       return <BlockMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
     }
     if (part.startsWith('\\[') && part.endsWith('\\]')) {
       return <BlockMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
+    }
+    if (part.startsWith('[') && part.endsWith(']') && isBracketMath(part.slice(1, -1))) {
+      return <BlockMath key={index} math={part.slice(1, -1).trim()} throwOnError={false} />;
     }
     if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
       return <InlineMath key={index} math={part.slice(1, -1)} throwOnError={false} />;
