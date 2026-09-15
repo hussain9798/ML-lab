@@ -83,6 +83,48 @@ const Documentation = () => {
     );
   };
 
+  const parseTableRow = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((cell) => cell.trim());
+
+  const isTableSeparator = (line) => {
+    const cells = parseTableRow(line);
+    return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+  };
+
+  const renderTable = (block, key) => {
+    const rows = block.split('\n').filter((line) => line.trim().includes('|'));
+    if (rows.length < 2 || !isTableSeparator(rows[1])) return null;
+
+    const headers = parseTableRow(rows[0]);
+    const bodyRows = rows.slice(2).map(parseTableRow);
+
+    return (
+      <div key={key} className="overflow-x-auto rounded-xl border border-slate-800">
+        <table className="w-full min-w-[520px] text-left text-xs border-collapse">
+          <thead className="bg-slate-800/80 text-slate-200">
+            <tr>
+              {headers.map((header, index) => (
+                <th key={index} className="px-4 py-3 font-bold border-b border-slate-700">
+                  {renderInlineContent(header)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800 bg-dark-950/40 text-slate-300">
+            {bodyRows.map((row, rowIndex) => (
+              <tr key={rowIndex} className="hover:bg-slate-800/40">
+                {headers.map((_, cellIndex) => (
+                  <td key={cellIndex} className="px-4 py-3 align-top">
+                    {renderInlineContent(row[cellIndex] || '')}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   useEffect(() => {
     const fetchDocs = async () => {
       setLoading(true);
@@ -220,6 +262,9 @@ const Documentation = () => {
             {/* Markdown / Formatted Educational Content */}
             <div className="prose prose-invert prose-slate max-w-none text-xs sm:text-sm leading-relaxed text-slate-300 space-y-6">
               {doc.content.split('\n\n').map((block, idx) => {
+                const table = renderTable(block, idx);
+                if (table) return table;
+
                 // Header level 1
                 if (block.startsWith('# ')) {
                   return (
