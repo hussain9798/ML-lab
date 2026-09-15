@@ -30,15 +30,27 @@ const Documentation = () => {
 
   const isBracketMath = (value) => /\\(?:frac|boxed|mathbf|hat|infty|sigma|sum|log|left|right|begin|end|partial)|[=^_]/.test(value);
 
+  const normalizeMath = (math) => math
+    .replace(/\\left(?![\[\](){}|])/g, '')
+    .replace(/\\right(?![\[\](){}|])/g, '')
+    .replace(/\r/g, '')
+    .trim();
+
+  const renderMathBlock = (math, key) => (
+    <div key={key} className="p-5 rounded-xl bg-dark-950 border border-slate-800 text-center text-cyan-200 overflow-x-auto shadow-inner">
+      <BlockMath math={normalizeMath(math)} throwOnError={false} />
+    </div>
+  );
+
   const renderInlineContent = (text) => text.split(/(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\[[\s\S]+?\])/g).map((part, index) => {
     if (part.startsWith('$$') && part.endsWith('$$')) {
-      return <BlockMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
+      return renderMathBlock(part.slice(2, -2), index);
     }
     if (part.startsWith('\\[') && part.endsWith('\\]')) {
-      return <BlockMath key={index} math={part.slice(2, -2).trim()} throwOnError={false} />;
+      return renderMathBlock(part.slice(2, -2), index);
     }
     if (part.startsWith('[') && part.endsWith(']') && isBracketMath(part.slice(1, -1))) {
-      return <BlockMath key={index} math={part.slice(1, -1).trim()} throwOnError={false} />;
+      return renderMathBlock(part.slice(1, -1), index);
     }
     if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
       return <InlineMath key={index} math={part.slice(1, -1)} throwOnError={false} />;
@@ -228,12 +240,11 @@ const Documentation = () => {
                 }
                 // Math Block
                 if (block.startsWith('$$') && block.endsWith('$$')) {
-                  const mathText = block.slice(2, -2).trim();
-                  return (
-                    <div key={idx} className="p-5 rounded-xl bg-dark-950 border border-slate-800 text-center text-cyan-200 overflow-x-auto shadow-inner">
-                      <BlockMath math={mathText} throwOnError={false} />
-                    </div>
-                  );
+                  return renderMathBlock(block.slice(2, -2), idx);
+                }
+                // Legacy articles may use a standalone [ ... ] math block.
+                if (block.trim().startsWith('[') && block.trim().endsWith(']') && isBracketMath(block.trim().slice(1, -1))) {
+                  return renderMathBlock(block.trim().slice(1, -1), idx);
                 }
                 // Divider
                 if (block.trim() === '---') {
